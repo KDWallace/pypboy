@@ -1,8 +1,8 @@
 {
-	[
+	"list": [
 		{
 			"name": "m16",
-			"condition: 100,
+			"condition": 100,
 			"image": "rifle",
 			"damage": 26,
 			"capacity": 30,
@@ -12,18 +12,19 @@
 		{
 			"name": "combat knife",
 			"image": "knife",
-			"condition": "100",
+			"condition": 100,
 			"type": "melee",
 			"damage": 32,
-			"rate": "2",
+			"rate": 2,
 			"cost": 125
 		},
 		{
 			"name": "grenade",
 			"image": "grenade",
 			"type": "throwable",
-			"condition": "100",
+			"condition": 100,
 			"damage": 256,
-			"cost", 200
+			"cost": 200
 		}
+	]
 }

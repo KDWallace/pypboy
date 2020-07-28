@@ -1,5 +1,23 @@
-import pygame, json
+import pygame, json, os
 import config as CON
+
+#obtains path used for files
+PATH = (os.path.dirname(os.path.realpath(__file__)))[:-4]
+
+class MissingFileError(Exception):
+    """Exception raised when an essential file is missing from the expected directory
+    Attributes:
+        directory -- directory that caused error
+    """
+
+    def __init__(self, directory, message='Essential file missing from directory'):
+        self.directory = directory
+        super().__init__(message)
+
+    def __str__(self):
+        return f'("{self.directory}" could not be found)'
+
+
 
 
 class Engine():
@@ -20,7 +38,7 @@ class Engine():
             self.modules[self.current].draw(self.display)
         #raises error if function is missing
         else:
-            raise MissingAttributeError(f'{self.current} module missing draw(display) function')
+            raise AttributeError(f'{self.current} module missing draw(display) function')
         #refreshes the display
         pygame.display.flip()
         self.clock.tick(24)
@@ -49,29 +67,47 @@ class Module():
             display.blit(string,(x,CON.SIZE[1]-CON.BOARDER_SPACE*2-string.get_height()))
             i += 1
             x += seps + CON.BOX_SPACE
-        
+
 class SubModule():
     def __init__(self,*args,**kwargs):
-        self.title = args[0]
-        #self.items_DIR = args[1]
-        self.items = {}
+        self.title        = args[0]
+        self.items        = {}
         self.current_item = 0
-        self.font = pygame.font.Font(CON.TEXT_FONT,CON.TEXT_SIZE)
+        self.font         = pygame.font.Font(CON.TEXT_FONT,CON.TEXT_SIZE)
+        self.items_DIR    = f'{PATH}\\resources\\data\\{args[0]}.json'
 
+        #allows for override in config and checks if chosen file exists
+        try:
+            if os.path.isfile(f'{CON.PATH}\\{args[0]}.json'):
+                self.items_DIR = f'{CON.PATH}\\{args[0]}.json'
+            elif not(os.path.isfile(self.items_DIR)):
+                raise MissingAttributeError(self.items_DIR,f'Missing file: {args[0]}.json')
+
+        except:
+            if not(os.path.isfile(self.items_DIR)):
+                raise MissingFileError(self.items_DIR,f'Missing file: {args[0]}.json')
+
+        self.get_items()
+
+    #obtains item data
     def get_items(self):
         with open(self.items_DIR,'r') as f:
+            print(self.items_DIR)
             self.items = json.load(f)
 
+    #saves item data
     def set_items(self):
         with open(self.items_DIR,'w') as f:
             json.dump(self.items,f,indent=4)
 
+    #selects/deselects current item
     def select_current(self):
         if 'selected' in self.items[self.current_item]:
             self.items[self.current_item]['selected'] = not(self.items[self.current_item]['selected'])
         else:
             self.items[self.current_item]['selected'] = True
 
+    #function called in Engine.refresh()
     def draw(display):
         if len(self.items) < 10:
             posY = CON.BOARDER_SPACE
@@ -79,9 +115,12 @@ class SubModule():
                 string = self.font.render(item.name,False,CON.TEXT_COLOUR)
                 #display.blit(string,)
 
+#initialisation
 pygame.init()
+
+#testing submodules
 itemsModule = []
-subnames = ['Weapons','Apparel','Aid','Misc','Ammo']
+subnames = ['weapons','apparel','aid','misc','ammo']
 for i in subnames:
     itemsModule.append(SubModule(i))
 
